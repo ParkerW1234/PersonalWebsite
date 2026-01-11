@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parker Wasileski</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Mono", monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image: url("backround.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+
+      color: #e5e5e5;
+    }
+
+    .terminal-wrapper {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .terminal {
+      position: relative;
+      background: rgba(7, 7, 12, 0.6);
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.06),
+        rgba(0, 0, 0, 0.25)
+      );
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 7px;
+      margin-right: 10px;
+    }
+
+    .traffic-light {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 0, 0, 0.3);
+    }
+
+    .red {
+      background: #ff5f57;
+    }
+
+    .yellow {
+      background: #febc2e;
+    }
+
+    .green {
+      background: #28c840;
+    }
+
+    .terminal-title {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .terminal-body {
+      padding: 14px 16px 10px;
+      height: 60vh;
+      max-height: 540px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .line {
+      display: block;
+      margin-bottom: 4px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .prompt-line {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .prompt-label {
+      color: #4ade80;
+      font-weight: 500;
+    }
+
+    .prompt-path {
+      color: #60a5fa;
+    }
+
+    .prompt-symbol {
+      color: #e5e5e5;
+    }
+
+    .output {
+      margin-bottom: 8px;
+    }
+
+    .input-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      background: radial-gradient(
+        circle at top,
+        rgba(255, 255, 255, 0.06),
+        rgba(0, 0, 0, 0.5)
+      );
+    }
+
+    .input-prefix {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .input-field {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: #e5e5e5;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .cursor-hint {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-left: 8px;
+    }
+
+    a {
+      color: #7dd3fc;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .muted {
+      color: rgba(229, 229, 229, 0.65);
+    }
+
+    .accent {
+      color: #a5b4fc;
+    }
+
+    .error {
+      color: #f97373;
+    }
+
+    .success {
+      color: #4ade80;
+    }
+
+    @media (max-width: 700px) {
+      .terminal-body {
+        height: 65vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-wrapper">
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="traffic-lights">
+          <span class="traffic-light red"></span>
+          <span class="traffic-light yellow"></span>
+          <span class="traffic-light green"></span>
+        </div>
+        <span class="terminal-title">parker@macbook-pro — ~/personal-site</span>
+      </div>
+
+      <div id="terminal-body" class="terminal-body"></div>
+
+      <form id="terminal-form" class="input-line" autocomplete="off">
+        <div class="input-prefix">
+          <span class="prompt-label">parker</span>
+          <span class="prompt-path">@portfolio</span>
+          <span class="prompt-symbol">$</span>
+        </div>
+        <input
+          id="terminal-input"
+          class="input-field"
+          type="text"
+          spellcheck="false"
+          autofocus
+        />
+        <span class="cursor-hint">type "help"</span>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const terminalBody = document.getElementById("terminal-body");
+    const terminalForm = document.getElementById("terminal-form");
+    const terminalInput = document.getElementById("terminal-input");
+
+    let projectsCache = null;
+    let isLoadingProjects = false;
+
+    function scrollToBottom() {
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+
+    function appendLine(text = "", extraClass = "") {
+      const line = document.createElement("div");
+      line.className = "line" + (extraClass ? " " + extraClass : "");
+      line.textContent = text;
+      terminalBody.appendChild(line);
+      scrollToBottom();
+    }
+
+    function appendHTML(html) {
+      const wrap = document.createElement("div");
+      wrap.className = "line";
+      wrap.innerHTML = html;
+      terminalBody.appendChild(wrap);
+      scrollToBottom();
+    }
+
+    function appendPrompt(commandText) {
+      const container = document.createElement("div");
+      container.className = "prompt-line";
+
+      const label = document.createElement("span");
+      label.className = "prompt-label";
+      label.textContent = "parker";
+
+      const path = document.createElement("span");
+      path.className = "prompt-path";
+      path.textContent = "@portfolio";
+
+      const symbol = document.createElement("span");
+      symbol.className = "prompt-symbol";
+      symbol.textContent = "$";
+
+      const cmd = document.createElement("span");
+      cmd.textContent = " " + commandText;
+
+      container.appendChild(label);
+      container.appendChild(path);
+      container.appendChild(symbol);
+      container.appendChild(cmd);
+
+      terminalBody.appendChild(container);
+      scrollToBottom();
+    }
+
+    function showWelcome() {
+      appendHTML('<span class="accent">Parker Wasileski</span>');
+      appendLine("Welcome");
+      appendLine('Type "help" to see available commands.');
+      appendLine();
+    }
+
+    function handleHelp() {
+      appendLine("Available commands:");
+      appendHTML('<span class="accent">help</span>      — show this help');
+      appendHTML('<span class="accent">clear</span>     — clear the screen');
+      appendHTML('<span class="accent">whoami</span>    — short intro');
+      appendHTML('<span class="accent">about</span>     — more about me');
+      appendHTML('<span class="accent">projects</span>  — list GitHub projects (parkerw1234)');
+      appendHTML('<span class="accent">contact</span>   — how to reach me');
+      appendHTML('<span class="accent">backround</span>   — backround source');
+    }
+
+    function handleWhoAmI() {
+      appendHTML(
+        "Hi, I'm <span class=\"accent\">Parker</span> — a developer"
+      );
+    }
+
+    function handleBackround() {
+      appendHTML(
+        "The backround image was taken in Old Orchard Beach, Maine"
+      );
+    }
+
+    function handleAbout() {
+      appendLine(
+        "I am a developer. I develop both hardware and software."
+      );
+      appendLine(
+        "I also enjoy officating soccer in the spring and fall."
+      );
+    }
+
+    async function fetchProjects() {
+      if (projectsCache) return projectsCache;
+      isLoadingProjects = true;
+      try {
+        const res = await fetch(
+          "https://api.github.com/users/parkerw1234/repos?sort=updated"
+        );
+        if (!res.ok) throw new Error("GitHub API error");
+        const data = await res.json();
+        projectsCache = data;
+        return data;
+      } catch (e) {
+        console.error(e);
+        throw e;
+      } finally {
+        isLoadingProjects = false;
+      }
+    }
+
+    async function handleProjects() {
+      if (isLoadingProjects) {
+        appendLine("Still fetching projects from GitHub…", "muted");
+        return;
+      }
+
+      appendLine("Fetching projects from GitHub (user: parkerw1234)…", "muted");
+      try {
+        const repos = await fetchProjects();
+        const filtered = repos
+        .filter(r => !r.fork)
+        .slice(0, 5); // limit to 5
+
+
+        if (!filtered.length) {
+          appendLine("No public repositories found.", "muted");
+          return;
+        }
+
+        appendLine();
+        filtered.forEach(repo => {
+          const name = repo.name;
+          const desc = repo.description || "No description provided.";
+          const url = repo.html_url;
+          const lang = repo.language || "Unknown";
+          appendHTML(
+            `<span class="success">${name}</span> ` +
+            `<span class="muted">[${lang}]</span>\n` +
+            `<span class="muted">${desc}</span>\n` +
+            `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+          );
+          appendLine();
+        });
+      } catch (e) {
+        appendHTML(
+          '<span class="error">Error:</span> could not load projects from GitHub right now.'
+        );
+      }
+    }
+
+    function handleContact() {
+      appendHTML(
+        'Email: <a href="mailto:p@parkerw.online">p@parkerw.online</a>'
+      );
+    }
+
+    function handleClear() {
+      terminalBody.innerHTML = "";
+    }
+
+    async function runCommand(raw) {
+      const input = raw.trim();
+
+      if (!input) return;
+
+      appendPrompt(input);
+
+      const cmd = input.toLowerCase();
+
+      switch (cmd) {
+        case "help":
+          handleHelp();
+          break;
+        case "clear":
+          handleClear();
+          break;
+        case "whoami":
+          handleWhoAmI();
+          break;
+        case "about":
+          handleAbout();
+          break;
+        case "projects":
+          await handleProjects();
+          break;
+        case "contact":
+          handleContact();
+          break;
+        case "backround":
+          handleBackround();
+          break;
+        default:
+          appendHTML(
+            `<span class="error">Command not found:</span> ${input}. ` +
+            'Type <span class="accent">help</span> for a list of commands.'
+          );
+      }
+
+      appendLine();
+    }
+
+    terminalForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const value = terminalInput.value;
+      terminalInput.value = "";
+      await runCommand(value);
+      terminalInput.focus();
+    });
+
+    // Focus on click inside terminal
+    document.addEventListener("click", () => {
+      terminalInput.focus();
+    });
+
+    // Initial content
+    showWelcome();
+  </script>
+</body>
+</html>
