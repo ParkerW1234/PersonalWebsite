@@ -304,7 +304,9 @@
         "Hi, I'm <span class=\"accent\">Parker</span> — a developer"
       );
     }
-
+     function handleMobile() {
+     window.location.href = "mobile.html";
+    }
     function handleBackround() {
       appendHTML(
         "The backround image was taken in Old Orchard Beach, Maine"
@@ -419,6 +421,9 @@
           break;
         case "backround":
           handleBackround();
+          break;
+        case "mobile":
+          handleMobile();
           break;
         default:
           appendHTML(
