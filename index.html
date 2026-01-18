@@ -285,6 +285,7 @@
       appendHTML('<span class="accent">Parker Wasileski</span>');
       appendLine("Welcome");
       appendLine('Type "help" to see available commands.');
+      appendLine('Type "simple" to see a simple view.');
       appendLine();
     }
 
@@ -297,6 +298,7 @@
       appendHTML('<span class="accent">projects</span>  — list GitHub projects (parkerw1234)');
       appendHTML('<span class="accent">contact</span>   — how to reach me');
       appendHTML('<span class="accent">backround</span>   — backround source');
+      appendHTML('<span class="accent">simple</span>   — Switch to simple view');
     }
 
     function handleWhoAmI() {
@@ -304,7 +306,7 @@
         "Hi, I'm <span class=\"accent\">Parker</span> — a developer"
       );
     }
-     function handleMobile() {
+     function handleSimple() {
      window.location.href = "mobile.html";
     }
     function handleBackround() {
@@ -422,8 +424,8 @@
         case "backround":
           handleBackround();
           break;
-        case "mobile":
-          handleMobile();
+        case "simple":
+          handleSimple();
           break;
         default:
           appendHTML(
